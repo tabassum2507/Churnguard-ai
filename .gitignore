@@ -20,6 +20,9 @@
 .DS_Store
 *.pem
 
+# model cache (Xenova/transformers — don't commit 90MB of ONNX weights)
+.cache/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

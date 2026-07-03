@@ -1,0 +1,117 @@
+{
+  "_comment": "Vapi assistant configuration for ChurnGuard AI. Create or update the assistant via the Vapi dashboard or API (POST https://api.vapi.ai/assistant). Replace all {{PLACEHOLDERS}} before use.",
+
+  "name": "ChurnGuard Rescue Agent",
+
+  "model": {
+    "provider": "anthropic",
+    "model": "claude-haiku-4-5-20251001",
+    "temperature": 0.3,
+    "systemPrompt": "You are Priya, a customer success specialist at FlowMetric — a project analytics platform. You are calling {{customerName}} from {{customerPlan}} plan because our system detected that their account activity has dropped.\n\nYour goal is to:\n1. Build rapport quickly — you have 5 minutes maximum\n2. Understand what's frustrating them or making FlowMetric less useful\n3. Share a relevant solution from your knowledge base using the search_knowledge_base tool\n4. Offer to create a support ticket if they have a technical issue (create_support_ticket tool)\n5. Escalate to a human specialist if they are very frustrated or considering cancelling (escalate_to_human tool)\n\nCustomer context:\n- Name: {{customerName}}\n- Plan: {{customerPlan}}\n- Monthly spend: ₹{{customerMrr}}\n- Health score: {{healthScore}}/100\n- Risk level: {{riskLevel}}\n\nGuidelines:\n- Speak naturally and conversationally — this is a phone call\n- Never read from a script; listen and respond to what the customer actually says\n- Acknowledge their frustration before jumping to solutions\n- Do not mention 'health score' or 'risk level' to the customer — these are internal terms\n- If they want to cancel, focus on what specific problem made them feel that way, then address it\n- Keep responses concise — long speeches lose callers\n- If a customer is happy and not at risk, wrap up positively within 3 minutes"
+  },
+
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "21m00Tcm4TlvDq8ikWAM",
+    "_voiceNote": "This is ElevenLabs 'Rachel'. Replace with any voice from vapi.ai/docs/customization/voice — try Neha or Aria for a more Indian accent.",
+    "stability": 0.5,
+    "similarityBoost": 0.75
+  },
+
+  "firstMessage": "Hi, am I speaking with {{customerName}}? This is Priya calling from the FlowMetric customer success team. I noticed your team hasn't been logging in as often lately and I just wanted to check in — is everything going alright with the platform?",
+
+  "endCallMessage": "Thank you for your time today. I hope we were able to sort things out. Have a great day!",
+
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "search_knowledge_base",
+        "description": "Search the FlowMetric knowledge base for help articles, troubleshooting guides, feature explanations, and pricing information. Use this when the customer has a specific question or problem you want to address with accurate information.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "A natural language description of what the customer needs help with. For example: 'dashboard loading slowly', 'how to export reports', 'upgrade to pro plan benefits'"
+            }
+          },
+          "required": ["query"]
+        }
+      },
+      "server": {
+        "url": "{{YOUR_DOMAIN}}/api/vapi/search-kb"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "create_support_ticket",
+        "description": "Create a support ticket for the customer when they have a technical problem that needs follow-up from the engineering or support team. Always confirm with the customer before creating a ticket.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "customer_phone": {
+              "type": "string",
+              "description": "The customer's phone number in E.164 format (e.g. +919876543210)"
+            },
+            "subject": {
+              "type": "string",
+              "description": "A clear, concise description of the issue. For example: 'Dashboard loading time exceeds 30 seconds on Chrome'"
+            },
+            "priority": {
+              "type": "string",
+              "enum": ["low", "medium", "high"],
+              "description": "Ticket priority. Use 'high' if the customer is blocked or losing data."
+            }
+          },
+          "required": ["customer_phone", "subject"]
+        }
+      },
+      "server": {
+        "url": "{{YOUR_DOMAIN}}/api/vapi/create-ticket"
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "escalate_to_human",
+        "description": "Escalate the call to a human customer success manager when: (1) the customer is very frustrated and a standard response won't help, (2) they are actively considering cancelling, (3) they have a complex billing or contract question, or (4) the customer explicitly asks to speak with a manager. This notifies the CS team immediately via Slack.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "customer_phone": {
+              "type": "string",
+              "description": "The customer's phone number in E.164 format"
+            },
+            "reason": {
+              "type": "string",
+              "description": "A brief summary of why escalation is needed, in plain language. For example: 'Customer is frustrated that their API integrations keep breaking and is considering switching to Amplitude'"
+            }
+          },
+          "required": ["customer_phone", "reason"]
+        }
+      },
+      "server": {
+        "url": "{{YOUR_DOMAIN}}/api/vapi/escalate"
+      }
+    }
+  ],
+
+  "serverMessages": ["end-of-call-report", "status-update", "hang"],
+  "serverUrl": "{{YOUR_DOMAIN}}/api/vapi/call-ended",
+
+  "maxDurationSeconds": 360,
+
+  "silenceTimeoutSeconds": 20,
+
+  "backgroundSound": "office",
+
+  "backchannelingEnabled": true,
+
+  "analysisPlan": {
+    "summaryPrompt": "Summarise this call in 2-3 sentences. Note: (1) the customer's main concern, (2) what solution or action was offered, (3) the outcome (resolved, escalated, or unresolved).",
+    "successEvaluationPrompt": "Did this call achieve its goal? Reply 'true' if the customer seemed satisfied, their concern was addressed, or a concrete next step was arranged. Reply 'false' if the customer remained frustrated, the concern was not addressed, or they mentioned cancelling.",
+    "successEvaluationRubric": "PassFail"
+  }
+}

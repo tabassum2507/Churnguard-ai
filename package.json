@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "node seed/generate-data.js",
+    "verify": "node seed/verify-data.js",
+    "embed": "node rag/embed.js",
+    "search:test": "node rag/test-search.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
