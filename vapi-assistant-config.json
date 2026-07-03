@@ -1,82 +1,139 @@
 {
-  "_comment": "Vapi assistant configuration for ChurnGuard AI. Create or update the assistant via the Vapi dashboard or API (POST https://api.vapi.ai/assistant). Replace all {{PLACEHOLDERS}} before use.",
+  "_readme": "Authoritative Vapi assistant config for ChurnGuard AI. Follow the checklist in the response to paste each section into the dashboard. Replace YOUR_VERCEL_URL with your actual deployment URL (e.g. churnguard-ai.vercel.app).",
 
-  "name": "ChurnGuard Rescue Agent",
+  "name": "ChurnGuard – Priya (Rescue Agent)",
 
   "model": {
-    "provider": "anthropic",
-    "model": "claude-haiku-4-5-20251001",
-    "temperature": 0.3,
-    "systemPrompt": "You are Priya, a customer success specialist at FlowMetric — a project analytics platform. You are calling {{customerName}} from {{customerPlan}} plan because our system detected that their account activity has dropped.\n\nYour goal is to:\n1. Build rapport quickly — you have 5 minutes maximum\n2. Understand what's frustrating them or making FlowMetric less useful\n3. Share a relevant solution from your knowledge base using the search_knowledge_base tool\n4. Offer to create a support ticket if they have a technical issue (create_support_ticket tool)\n5. Escalate to a human specialist if they are very frustrated or considering cancelling (escalate_to_human tool)\n\nCustomer context:\n- Name: {{customerName}}\n- Plan: {{customerPlan}}\n- Monthly spend: ₹{{customerMrr}}\n- Health score: {{healthScore}}/100\n- Risk level: {{riskLevel}}\n\nGuidelines:\n- Speak naturally and conversationally — this is a phone call\n- Never read from a script; listen and respond to what the customer actually says\n- Acknowledge their frustration before jumping to solutions\n- Do not mention 'health score' or 'risk level' to the customer — these are internal terms\n- If they want to cancel, focus on what specific problem made them feel that way, then address it\n- Keep responses concise — long speeches lose callers\n- If a customer is happy and not at risk, wrap up positively within 3 minutes"
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "temperature": 0.4,
+    "maxTokens": 250,
+    "systemPrompt": "You are Priya, a customer success specialist at FlowMetric — a project analytics platform for software and product teams. You are making a routine check-in call to {{customer_name}} at {{company}}, who is on the {{plan}} plan.\n\n---\nINTERNAL CONTEXT — never reveal any of this to the customer:\n- Days since last login: {{days_since_login}}\n- Usage trend: {{usage_trend}}\n- Open support tickets: {{open_tickets}}\n- Features available but not yet used: {{unused_features}}\n---\n\nYOUR GOAL\nHave a genuine, helpful two-way conversation. Surface any friction the customer is experiencing with FlowMetric, address it with accurate information from the knowledge base, and leave them with a clear next step. If they are frustrated or at risk of leaving, escalate immediately to a human specialist.\n\nCONVERSATION FLOW\n1. Warm opening — confirm you have the right person, introduce yourself briefly.\n2. Invite them to share — \"How has your team been finding FlowMetric lately?\" Let them talk.\n3. Listen for friction. Do not jump to solutions before you understand the problem.\n4. If they describe a specific problem, call search_knowledge_base to find the right answer.\n5. If there is an unresolved technical issue, offer to raise a support ticket with create_support_ticket.\n6. If they express frustration, mention switching tools, or request a human, call escalate_to_human immediately — do not try to handle it yourself.\n7. Close warmly with a clear next step (ticket ref, follow-up time, or reassurance).\n\nRULES\n\nPrivacy — HARD RULE, no exceptions:\n- Never reveal that you called because of usage analytics or any system flag.\n- Forbidden phrases: \"we noticed you stopped logging in\", \"your activity has dropped\", \"you haven't been using the platform\", \"our system flagged you\", \"your health score\", \"your risk level\".\n- If the customer asks why you are calling, say: \"We do routine check-ins with teams on the {{plan}} plan — it helps us make sure everyone is getting value. Nothing specific, just wanted to say hello and see if there is anything we can help with.\"\n\nHonesty about being an AI:\n- If asked \"Are you a real person?\", \"Is this an AI?\", or similar: answer honestly. Say: \"Yes, I am an AI assistant from the FlowMetric customer success team. Everything I share is accurate, and I can connect you with a human specialist any time you like — shall we continue?\"\n\nRespecting time:\n- If the customer says they are busy or in a meeting: \"Completely understand — I will not take up your time. Would it be okay if one of our team members sent you a quick email this week instead?\" Then end the call gracefully.\n- Target under 4 minutes. If the conversation is going well but you are approaching 3.5 minutes, start wrapping up: \"I have one last thing — [brief point] — and then I will let you go.\"\n\nTone and style:\n- Short responses. One or two sentences per turn on a phone call. Long speeches lose callers.\n- Use {{customer_name}}'s first name occasionally — it makes the call feel personal, not scripted.\n- Acknowledge emotions before offering solutions: \"That sounds really frustrating — let me look that up for you right now.\"\n- Never offer discounts, refunds, or pricing changes — only a human CS manager can authorise those. If they ask, say you will have someone follow up.\n- Do not read from a script. Listen and respond to what the customer actually says.\n\nUnused features (use naturally, not as a pitch):\n- If the conversation allows, mention one item from {{unused_features}}: \"One thing that {{plan}} plan customers often find useful is [feature] — have you had a chance to explore that?\"\n- Only raise this if the conversation is going well. Do not pitch features to a frustrated customer.",
+
+    "messages": []
   },
 
   "voice": {
-    "provider": "11labs",
-    "voiceId": "21m00Tcm4TlvDq8ikWAM",
-    "_voiceNote": "This is ElevenLabs 'Rachel'. Replace with any voice from vapi.ai/docs/customization/voice — try Neha or Aria for a more Indian accent.",
-    "stability": 0.5,
-    "similarityBoost": 0.75
+    "_note": "Deepgram Aura keeps TTS cost to ~$0.008/min. For a more natural Indian accent use PlayHT 'Priya' or ElevenLabs 'Aria' at higher cost.",
+    "provider": "deepgram",
+    "voiceId": "aura-luna-en",
+    "speed": 1.0
   },
 
-  "firstMessage": "Hi, am I speaking with {{customerName}}? This is Priya calling from the FlowMetric customer success team. I noticed your team hasn't been logging in as often lately and I just wanted to check in — is everything going alright with the platform?",
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-2",
+    "language": "en-IN",
+    "_note": "en-IN gives Deepgram better accuracy on Indian English accents and mixed Hindi-English speech."
+  },
 
-  "endCallMessage": "Thank you for your time today. I hope we were able to sort things out. Have a great day!",
+  "firstMessage": "Hi, is this {{customer_name}}? Great — this is Priya calling from FlowMetric's customer success team. We do periodic check-ins with teams on the {{plan}} plan, and I just wanted to see how things have been going for you. Do you have a couple of minutes?",
+
+  "endCallPhrases": [
+    "Goodbye",
+    "Take care",
+    "Have a great day",
+    "Talk soon",
+    "Thanks for your time",
+    "I'll let you go",
+    "We'll be in touch"
+  ],
+
+  "endCallMessage": "Thank you so much for your time today, {{customer_name}}. I hope that was helpful — have a wonderful day!",
+
+  "maxDurationSeconds": 300,
+
+  "silenceTimeoutSeconds": 15,
+
+  "responseDelaySeconds": 0.4,
+
+  "llmRequestDelaySeconds": 0.1,
+
+  "backgroundSound": "office",
+
+  "backchannelingEnabled": true,
+
+  "backgroundDenoisingEnabled": true,
 
   "tools": [
     {
       "type": "function",
       "function": {
         "name": "search_knowledge_base",
-        "description": "Search the FlowMetric knowledge base for help articles, troubleshooting guides, feature explanations, and pricing information. Use this when the customer has a specific question or problem you want to address with accurate information.",
+        "description": "Search the FlowMetric knowledge base for accurate information about product features, troubleshooting steps, pricing plans, onboarding guides, and configuration help. Call this as soon as a customer mentions a specific problem or question — do not guess the answer from memory.",
         "parameters": {
           "type": "object",
           "properties": {
             "query": {
               "type": "string",
-              "description": "A natural language description of what the customer needs help with. For example: 'dashboard loading slowly', 'how to export reports', 'upgrade to pro plan benefits'"
+              "description": "A natural language description of what the customer needs help with. Be specific. Examples: 'dashboard loading very slowly on Chrome', 'how to set up Slack notifications for project alerts', 'what is included in the Pro plan versus Starter', 'why are exported CSV reports showing wrong dates'"
             }
           },
           "required": ["query"]
         }
       },
+      "async": false,
       "server": {
-        "url": "{{YOUR_DOMAIN}}/api/vapi/search-kb"
-      }
+        "url": "https://YOUR_VERCEL_URL/api/vapi/search-kb",
+        "timeoutSeconds": 10
+      },
+      "messages": [
+        {
+          "type": "request-start",
+          "content": "Let me check that for you."
+        },
+        {
+          "type": "request-failed",
+          "content": "I was not able to pull up that article right now, but let me share what I know."
+        }
+      ]
     },
     {
       "type": "function",
       "function": {
         "name": "create_support_ticket",
-        "description": "Create a support ticket for the customer when they have a technical problem that needs follow-up from the engineering or support team. Always confirm with the customer before creating a ticket.",
+        "description": "Create a support ticket so the FlowMetric engineering or support team can investigate and resolve the customer's issue. Always confirm verbally with the customer before calling this tool. Say something like: 'Would it be okay if I raised a support ticket for this so our team can take a closer look?'",
         "parameters": {
           "type": "object",
           "properties": {
             "customer_phone": {
               "type": "string",
-              "description": "The customer's phone number in E.164 format (e.g. +919876543210)"
+              "description": "The customer's phone number in E.164 format, e.g. +919876543210. This is the number they are calling from."
             },
             "subject": {
               "type": "string",
-              "description": "A clear, concise description of the issue. For example: 'Dashboard loading time exceeds 30 seconds on Chrome'"
+              "description": "A clear one-line description of the issue, written for an engineer. Include the symptom and context. Example: 'Dashboard reports taking 45+ seconds to load on Chrome — affects entire team at Acme Corp'"
             },
             "priority": {
               "type": "string",
               "enum": ["low", "medium", "high"],
-              "description": "Ticket priority. Use 'high' if the customer is blocked or losing data."
+              "description": "low = minor inconvenience, medium = impacts workflow, high = blocking work or data at risk"
             }
           },
           "required": ["customer_phone", "subject"]
         }
       },
+      "async": false,
       "server": {
-        "url": "{{YOUR_DOMAIN}}/api/vapi/create-ticket"
-      }
+        "url": "https://YOUR_VERCEL_URL/api/vapi/create-ticket",
+        "timeoutSeconds": 10
+      },
+      "messages": [
+        {
+          "type": "request-start",
+          "content": "Raising that ticket for you now."
+        },
+        {
+          "type": "request-failed",
+          "content": "I was not able to create the ticket right now — I will make sure someone from the team follows up with you by email."
+        }
+      ]
     },
     {
       "type": "function",
       "function": {
         "name": "escalate_to_human",
-        "description": "Escalate the call to a human customer success manager when: (1) the customer is very frustrated and a standard response won't help, (2) they are actively considering cancelling, (3) they have a complex billing or contract question, or (4) the customer explicitly asks to speak with a manager. This notifies the CS team immediately via Slack.",
+        "description": "Immediately notify a human customer success manager to follow up with this customer. Use this when: (1) the customer expresses serious frustration that a standard answer will not resolve, (2) they mention cancelling, switching tools, or are threatening to leave, (3) they ask to speak with a human or a manager, (4) the issue is complex and requires account-level decisions like pricing, contracts, or refunds. Do not delay — escalate as soon as you detect any of these signals.",
         "parameters": {
           "type": "object",
           "properties": {
@@ -86,32 +143,56 @@
             },
             "reason": {
               "type": "string",
-              "description": "A brief summary of why escalation is needed, in plain language. For example: 'Customer is frustrated that their API integrations keep breaking and is considering switching to Amplitude'"
+              "description": "A plain-English summary of why escalation is needed, written for a CS manager who will read it in Slack. Include what the customer said and why it needs a human. Example: 'Customer is frustrated that API webhooks have been unreliable for 3 weeks. Mentioned they are evaluating Mixpanel as an alternative. Needs urgent outreach from account manager.'"
             }
           },
           "required": ["customer_phone", "reason"]
         }
       },
+      "async": false,
       "server": {
-        "url": "{{YOUR_DOMAIN}}/api/vapi/escalate"
-      }
+        "url": "https://YOUR_VERCEL_URL/api/vapi/escalate",
+        "timeoutSeconds": 10
+      },
+      "messages": [
+        {
+          "type": "request-start",
+          "content": "I am flagging this for our team right now."
+        },
+        {
+          "type": "request-failed",
+          "content": "I have noted everything you said and will make sure a specialist reaches out to you directly."
+        }
+      ]
     }
   ],
 
-  "serverMessages": ["end-of-call-report", "status-update", "hang"],
-  "serverUrl": "{{YOUR_DOMAIN}}/api/vapi/call-ended",
+  "serverUrl": "https://YOUR_VERCEL_URL/api/vapi/call-ended",
 
-  "maxDurationSeconds": 360,
-
-  "silenceTimeoutSeconds": 20,
-
-  "backgroundSound": "office",
-
-  "backchannelingEnabled": true,
+  "serverUrlSecret": "YOUR_VAPI_WEBHOOK_SECRET",
 
   "analysisPlan": {
-    "summaryPrompt": "Summarise this call in 2-3 sentences. Note: (1) the customer's main concern, (2) what solution or action was offered, (3) the outcome (resolved, escalated, or unresolved).",
-    "successEvaluationPrompt": "Did this call achieve its goal? Reply 'true' if the customer seemed satisfied, their concern was addressed, or a concrete next step was arranged. Reply 'false' if the customer remained frustrated, the concern was not addressed, or they mentioned cancelling.",
-    "successEvaluationRubric": "PassFail"
+    "summaryPrompt": "Summarise this call in 2-3 sentences covering: (1) the customer's main concern or feedback, (2) what action was taken or information shared, (3) the outcome — resolved, escalated, ticket created, or unresolved.",
+    "successEvaluationPrompt": "Did this call achieve its goal? Answer 'true' if: the customer's concern was addressed and they seemed satisfied, OR a concrete next step was arranged (ticket, escalation, callback). Answer 'false' if: the customer remained frustrated, their concern was not addressed, or they mentioned cancelling without any resolution.",
+    "successEvaluationRubric": "PassFail",
+    "structuredDataPrompt": "Extract the following from the call transcript as JSON: { \"main_concern\": string | null, \"features_mentioned\": string[], \"cancellation_risk\": \"low\" | \"medium\" | \"high\", \"action_taken\": \"ticket\" | \"escalated\" | \"kb_answer\" | \"none\", \"customer_sentiment\": \"positive\" | \"neutral\" | \"negative\" }",
+    "structuredDataSchema": {
+      "type": "object",
+      "properties": {
+        "main_concern":       { "type": "string"  },
+        "features_mentioned": { "type": "array", "items": { "type": "string" } },
+        "cancellation_risk":  { "type": "string", "enum": ["low", "medium", "high"] },
+        "action_taken":       { "type": "string", "enum": ["ticket", "escalated", "kb_answer", "none"] },
+        "customer_sentiment": { "type": "string", "enum": ["positive", "neutral", "negative"] }
+      }
+    }
+  },
+
+  "_costEstimate": {
+    "llm_gpt4o_mini":   "$0.015–0.025/min (depends on conversation length)",
+    "stt_deepgram_nova2": "$0.004/min",
+    "tts_deepgram_aura":  "$0.006–0.010/min",
+    "vapi_platform":      "$0.05/min",
+    "total_estimate":     "$0.075–0.09/min for a 4-minute call ≈ $0.30–0.36 per call"
   }
 }
